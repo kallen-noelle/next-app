@@ -1,6 +1,8 @@
 export interface User {
   id: string;
+  email: string;
   name: string;
+  avatar: string;
   created_at: string;
 }
 
@@ -23,12 +25,14 @@ export interface AuthResponse {
 export interface Homework {
   id: string;
   user_id: string;
-  title: string;
+  type: 'math' | 'english' | 'science' | 'history' | 'art' | 'music' | 'physical_education' | 'computer_science';
+  target: number;//分数
+  limit: string;//最高最低分数
+  reviewer: string;//创建时间
+  header: string;
   description?: string;
   file_url?: string;
-  status: 'pending' | 'grading' | 'completed' | 'error';
-  created_at: string;
-  updated_at: string;
+  status: 'In Process' | 'Done';
 }
 
 export interface UploadHomeworkRequest {

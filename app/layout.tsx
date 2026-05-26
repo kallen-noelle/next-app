@@ -1,6 +1,6 @@
 import "./globals.css"
 import { Geist, Geist_Mono } from "next/font/google"
-
+import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/context/AuthContext";
@@ -27,7 +27,20 @@ export default function RootLayout({
       <body>
         <AuthProvider>
         <ThemeProvider> 
-          <TooltipProvider>{children}
+          <TooltipProvider>
+            <Toaster
+            position="top-center"
+            toastOptions={{
+              style: {
+                background: "#ffffffff",
+                color: "rgb(0, 0, 0)",
+                border: "1px solid #e5e7eb",
+                borderRadius: "0.75rem",
+                boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+              },
+            }}
+          />
+            {children}
             </TooltipProvider>
             </ThemeProvider>
         </AuthProvider>
