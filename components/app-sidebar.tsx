@@ -29,16 +29,16 @@ const data = {
       icon: (  <ListIcon  />),
     },
     {
-      title: "Analytics",
-      url: "/analytics",
+      title: "Login",
+      url: "/login",
       icon: (
         <ChartBarIcon
         />
       ),
     },
     {
-      title: "Projects",
-      url: "/projects",
+      title: "SignUp",
+      url: "/signup",
       icon: (
         <FolderIcon
         />
@@ -157,7 +157,6 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
-  data.user =  user || data.user;
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -181,7 +180,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user === null ? data.user : { name: user.username, email: user.email, avatar:"user/avatar.jpg" }} />
       </SidebarFooter>
     </Sidebar>
   )

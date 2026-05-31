@@ -3,7 +3,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { homeworkApi } from '@/lib/endpoints';
 import { toast } from 'sonner';
 import { Upload, File, X, Loader2 } from 'lucide-react';
@@ -34,13 +34,27 @@ export default function Page() {
 }
 
 export function EmptyOutline() {
-    const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [subject, setSubject] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const router = useRouter();
+  const userId = localStorage.getItem('user_id');
+  
+  const subjects = [
+    { value: 'math', label: '数学' },
+    { value: 'english', label: '英语' },
+    { value: 'chinese', label: '语文' },
+    { value: 'physics', label: '物理' },
+    { value: 'chemistry', label: '化学' },
+    { value: 'biology', label: '生物' },
+    { value: 'history', label: '历史' },
+    { value: 'geography', label: '地理' },
+    { value: 'politics', label: '政治' },
+  ];
+  
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -94,12 +108,28 @@ export function EmptyOutline() {
       return;
     }
 
+    if (!subject) {
+      toast.error('请选择科目');
+      return;
+    }
+    if (!userId) {
+      toast.error('用户未登录');
+      return;
+    }
+
     setIsUploading(true);
 
     try {
-      await homeworkApi.upload(file, title, description);
+      await homeworkApi.upload(file, title, description, subject, userId);
       toast.success('作业上传成功');
-      router.push('/homework');
+      // 重置表单
+      setFile(null);
+      setTitle('');
+      setDescription('');
+      setSubject('');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch {
       toast.error('上传失败');
     } finally {
@@ -144,6 +174,26 @@ export function EmptyOutline() {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                选择科目
+              </label>
+              <Select value={subject} onValueChange={setSubject}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="请选择科目" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subjects.map((subject) => (
+                    <SelectItem key={subject.value} value={subject.value}>
+                      {subject.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+           
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <label className="block text-sm font-medium text-gray-700 mb-4">
               上传文件
             </label>
@@ -170,14 +220,9 @@ export function EmptyOutline() {
                 <Upload
                   className={`w-12 h-12 mx-auto mb-4 ${
                     isDragging ? 'text-blue-500' : 'text-gray-400'
-                  }`}
-                />
-                <p className="text-gray-600 font-medium">
-                  拖拽文件到此处，或点击选择文件
-                </p>
-                <p className="text-sm text-gray-500 mt-2">
-                  支持 PDF, DOC, DOCX, TXT, ZIP, RAR 格式
-                </p>
+                  }`}/>
+                <p className="text-gray-600 font-medium">   拖拽文件到此处，或点击选择文件 </p>
+                <p className="text-sm text-gray-500 mt-2">  支持 PDF, DOC, DOCX, TXT, ZIP, RAR 格式</p>
               </div>
             ) : (
               <div className="border-2 border-green-200 bg-green-50 rounded-xl p-6">
@@ -196,8 +241,7 @@ export function EmptyOutline() {
                   <button
                     type="button"
                     onClick={handleRemoveFile}
-                    className="p-2 hover:bg-green-100 rounded-lg transition-colors"
-                  >
+                    className="p-2 hover:bg-green-100 rounded-lg transition-colors" >
                     <X className="w-5 h-5 text-gray-500" />
                   </button>
                 </div>

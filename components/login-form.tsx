@@ -13,7 +13,6 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
- const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useAuth();
@@ -23,12 +22,13 @@ export function LoginForm({
     e.preventDefault();
 
     try {
-      if (isLogin) {
-        await login(email, password);
-      } 
+      
+      await login(email, password);
+    
       router.push('/dashboard');
     } catch {
       // Error handled by context
+      
     } finally {
     }
   };

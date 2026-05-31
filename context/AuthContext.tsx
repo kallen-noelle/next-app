@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { User } from '@/types';
 import { authApi } from '@/lib/endpoints';
 import { toast } from 'sonner';
@@ -11,7 +11,7 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  register: (email: string, password: string, username: string, role: "student" | "teacher") => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -23,23 +23,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
-  }, []);
+
 
   const login = async (email: string, password: string) => {
     try {
       const response = await authApi.login({ email, password });
-      setToken(response.token);
+      setToken(response.access_token);
       setUser(response.user);
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      localStorage.setItem('token', response.access_token);
+      localStorage.setItem('username', response.user.username);
+      localStorage.setItem('role', response.user.role);
+      localStorage.setItem('user_id', response.user.id);
+      localStorage.setItem('email', response.user.email);
+      localStorage.setItem('created_at', response.user.created_at);
+
       toast.success('登录成功');
     } catch (err) {
       const error = err as AxiosError<{ message?: string }>;
@@ -48,13 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (email: string, password: string, name: string) => {
+  const register = async (email: string, password: string, username: string, role: 'student' | 'teacher') => {
     try {
-      const response = await authApi.register({ email, password, name });
-      setToken(response.token);
-      setUser(response.user);
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      await authApi.register({ email, password, username, role });
       toast.success('注册成功');
     } catch (err) {
       const error = err as AxiosError<{ message?: string }>;

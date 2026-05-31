@@ -18,11 +18,14 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  
   useEffect(() => {
     const loadHomework = async () => {
       try {
-        const data = await homeworkApi.getList();
-        setHomework(data || []);
+        const id = Number(localStorage.getItem('user_id') || '0');
+        
+        const response = await homeworkApi.getList(id);
+        setHomework(response.data || []);
       } catch {
         toast.error('加载作业列表失败');
       } finally {
@@ -48,7 +51,7 @@ export default function Page() {
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              {/* <SectionCards /> */}
+              <SectionCards />
               <div className="px-4 lg:px-6">
                 <ChartAreaInteractive />
               </div>

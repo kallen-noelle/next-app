@@ -7,22 +7,25 @@ import { Button } from "@/components/ui/button"
 import {  Card,  CardContent,  CardDescription,  CardHeader,  CardTitle,} from "@/components/ui/card"
 import {  Field,  FieldDescription,  FieldGroup,  FieldLabel,} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import {  Select,  SelectContent,  SelectGroup,  SelectItem,  SelectLabel,  SelectTrigger,  SelectValue,} from "@/components/ui/select"
 
 export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [role, setRole] = useState<'student' | 'teacher'>('student');
   const { register } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await register(email, password, name);
-      router.push('/dashboard');
+      await register(email, password, name, role);
+      router.push('/login');
     } catch {
       // Error handled by context
     } finally {
+      
     }
   };
 
@@ -38,7 +41,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
         <form onSubmit={handleSubmit}>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="name">Full Name</FieldLabel>
+              <FieldLabel htmlFor="name">Name</FieldLabel>
               <Input id="name" type="text" placeholder="John Doe" required value={name} onChange={(e) => setName(e.target.value)} />
             </Field>
             <Field>
@@ -69,6 +72,19 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
               </FieldLabel>
               <Input id="confirm-password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
               <FieldDescription>Please confirm your password.</FieldDescription>
+              
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="form-country">Role</FieldLabel>
+              <Select defaultValue="student">
+                <SelectTrigger id="form-country">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student" onClick={() => setRole('student')}>Student</SelectItem>
+                  <SelectItem value="teacher" onClick={() => setRole('teacher')}>Teacher</SelectItem>
+                </SelectContent>
+              </Select>
             </Field>
             <FieldGroup>
               <Field>

@@ -1,15 +1,17 @@
 export interface User {
   id: string;
   email: string;
-  name: string;
-  avatar: string;
+  username: string;
   created_at: string;
+  role: string;
+  has_password:string;
 }
 
 export interface RegisterRequest {
   email: string;
   password: string;
-  name: string;
+  username: string;
+  role: string;
 }
 
 export interface LoginRequest {
@@ -19,20 +21,19 @@ export interface LoginRequest {
 
 export interface AuthResponse {
   user: User;
-  token: string;
+  access_token: string;
+  token_type: string;
+
 }
 
 export interface Homework {
-  id: string;
-  user_id: string;
-  type: 'math' | 'english' | 'science' | 'history' | 'art' | 'music' | 'physical_education' | 'computer_science';
-  target: number;//分数
-  limit: string;//最高最低分数
-  reviewer: string;//创建时间
-  header: string;
-  description?: string;
-  file_url?: string;
-  status: 'In Process' | 'Done';
+  task_id: string;
+  subject: string;
+  grade: string;
+  user_id: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface UploadHomeworkRequest {
@@ -49,11 +50,10 @@ export interface GradingResult {
 }
 
 export interface UserStatistics {
-  user_id: string;
-  total_submissions: number;
-  average_score: number;
+  task_count: number;
   completed_count: number;
-  pending_count: number;
+  avg_score: number;
+  latest_score: number;
 }
 
 export interface GlobalStatistics {
@@ -66,5 +66,5 @@ export interface GlobalStatistics {
 export interface ApiResponse<T> {
   data: T;
   message?: string;
-  success: boolean;
+  code: number;
 }
