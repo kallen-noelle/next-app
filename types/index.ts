@@ -63,6 +63,17 @@ export interface GlobalStatistics {
   active_today: number;
 }
 
+export interface PaginationInfo {
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  pagination: PaginationInfo;
+}
+
 export interface ApiResponse<T> {
   data: T;
   message?: string;

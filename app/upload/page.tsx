@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { homeworkApi } from '@/lib/endpoints';
 import { toast } from 'sonner';
 import { Upload, File, X, Loader2 } from 'lucide-react';
+import { Field, FieldLabel } from '@/components/ui/field';
 export default function Page() {
   return (
     <SidebarProvider
@@ -34,12 +35,13 @@ export default function Page() {
 }
 
 export function EmptyOutline() {
-  const [file, setFile] = useState<File | null>(null);
-  const [title, setTitle] = useState('');
+    const [file, setFile] = useState<File | null>(null);
   const [description, setDescription] = useState('');
   const [subject, setSubject] = useState('');
+  const [grade, setGrade] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const userId = localStorage.getItem('user_id');
   
@@ -55,6 +57,20 @@ export function EmptyOutline() {
     { value: 'politics', label: '政治' },
   ];
   
+  const grades = [
+    { value: 'grade1', label: '一年级' },
+    { value: 'grade2', label: '二年级' },
+    { value: 'grade3', label: '三年级' },
+    { value: 'grade4', label: '四年级' },
+    { value: 'grade5', label: '五年级' },
+    { value: 'grade6', label: '六年级' },
+    { value: 'grade7', label: '七年级' },
+    { value: 'grade8', label: '八年级' },
+    { value: 'grade9', label: '九年级' },
+    { value: 'grade10', label: '十年级' },
+    { value: 'grade11', label: '十一年级' },
+    { value: 'grade12', label: '十二年级' },
+  ];
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -72,9 +88,6 @@ export function EmptyOutline() {
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
       setFile(droppedFile);
-      if (!title) {
-        setTitle(droppedFile.name.replace(/\.[^/.]+$/, ''));
-      }
     }
   };
 
@@ -82,9 +95,7 @@ export function EmptyOutline() {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      if (!title) {
-        setTitle(selectedFile.name.replace(/\.[^/.]+$/, ''));
-      }
+
     }
   };
 
@@ -97,35 +108,40 @@ export function EmptyOutline() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setShowErrors(true);
+
+    let isValid = true;
 
     if (!file) {
       toast.error('请选择文件');
-      return;
+      isValid = false;
     }
 
-    if (!title.trim()) {
-      toast.error('请输入作业标题');
-      return;
+    if (!grade) {
+      isValid = false;
     }
 
     if (!subject) {
-      toast.error('请选择科目');
-      return;
+      isValid = false;
     }
+
     if (!userId) {
       toast.error('用户未登录');
+      isValid = false;
+    }
+
+    if (!isValid) {
       return;
     }
 
     setIsUploading(true);
 
     try {
-      await homeworkApi.upload(file, title, description, subject, userId);
+      await homeworkApi.upload(file!, subject,grade);
       toast.success('作业上传成功');
       // 重置表单
       setFile(null);
-      setTitle('');
-      setDescription('');
+      setGrade('');
       setSubject('');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -139,92 +155,92 @@ export function EmptyOutline() {
 
   return (
 
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">上传作业</h1>
-          <p className="text-gray-600 mt-1">提交您的作业文件进行批改</p>
-        </div>
+      <div className="max-w-3xl mx-auto ">
+     
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              作业标题
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              placeholder="请输入作业标题"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            />
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              作业描述（可选）
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-              placeholder="请输入作业描述..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-            />
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                选择科目
-              </label>
-              <Select value={subject} onValueChange={setSubject}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="请选择科目" />
+      
+          <div className="grid grid-cols-2 gap-4">
+            <Field>
+               <FieldLabel htmlFor="form-grade">年级</FieldLabel>
+              <Select 
+                value={grade} 
+                onValueChange={setGrade}
+                required
+              >
+                <SelectTrigger id="form-grade">
+                  <SelectValue  />
                 </SelectTrigger>
                 <SelectContent>
-                  {subjects.map((subject) => (
-                    <SelectItem key={subject.value} value={subject.value}>
-                      {subject.label}
+                  {grades.map((grade) => (
+                    <SelectItem key={grade.value} value={grade.value}>
+                      {grade.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {showErrors && !grade && (
+                 <p className="text-sm text-red-500 mt-1">请选择年级</p>
+               )}
+            </Field>
+            <Field>
+               <FieldLabel htmlFor="form-subject">科目</FieldLabel>
+               <Select 
+                 value={subject} 
+                 onValueChange={setSubject}
+                 required
+                 
+               >
+                 <SelectTrigger id="form-subject">
+                   <SelectValue />
+                 </SelectTrigger>
+                 <SelectContent>
+                   {subjects.map((subject) => (
+                     <SelectItem key={subject.value} value={subject.value}>
+                       {subject.label}
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+               {showErrors && !subject && (
+                  <p className="text-sm text-red-500 mt-1">请选择科目</p>
+                )}
+            </Field>
+         </div>
 
-           
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="bg-muted rounded-xl shadow-sm p-6 border border-gray-100">
             <label className="block text-sm font-medium text-gray-700 mb-4">
               上传文件
             </label>
 
-            {!file ? (
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
-                  isDragging
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
-                }`}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.txt,.zip,.rar"
-                />
-                <Upload
-                  className={`w-12 h-12 mx-auto mb-4 ${
-                    isDragging ? 'text-blue-500' : 'text-gray-400'
-                  }`}/>
-                <p className="text-gray-600 font-medium">   拖拽文件到此处，或点击选择文件 </p>
-                <p className="text-sm text-gray-500 mt-2">  支持 PDF, DOC, DOCX, TXT, ZIP, RAR 格式</p>
-              </div>
-            ) : (
+            {!file ?
+             (
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
+                    isDragging
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+                  }`}
+                >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      accept=".pdf,.doc,.docx,.txt,.zip,.rar"
+                    />
+                    <Upload className={`w-12 h-12 mx-auto mb-4 ${   isDragging ? 'text-blue-500' : 'text-gray-400'
+                      }`}/>
+                    <p className="text-gray-600 font-medium">   拖拽文件到此处，或点击选择文件 </p>
+                    <p className="text-sm text-gray-500 mt-2">  支持 PDF, DOC, DOCX, TXT, ZIP, RAR 格式</p>
+                </div>
+            ) 
+            : 
+            (
               <div className="border-2 border-green-200 bg-green-50 rounded-xl p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -252,7 +268,9 @@ export function EmptyOutline() {
           <button
             type="submit"
             disabled={isUploading || !file}
-            className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 
+            bg-gradient-to-r from-blue-600 to-indigo-600 
+            text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isUploading && <Loader2 className="w-5 h-5 animate-spin" />}
             {isUploading ? '上传中...' : '提交作业'}

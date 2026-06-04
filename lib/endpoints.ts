@@ -9,8 +9,9 @@ import {
   UserStatistics,
   GlobalStatistics,
   ApiResponse,
+  PaginatedResponse,
 } from '@/types';
-
+import { useSettings } from '@/context/SettingsContext';
 export const authApi = {
   register: (data: RegisterRequest) =>
     apiClient.post<AuthResponse>('/users/register', data),
@@ -23,8 +24,8 @@ export const authApi = {
 };
 
 export const homeworkApi = {
-  upload: (file: File, subject: string, title: string,  userId: string ,description?: string) =>
-    apiClient.uploadFile<Homework>('/homework/upload', file, { subject, title: title, description: description || '', user_id: userId }), 
+  upload: (file: File, subject: string, grade: string) =>
+    apiClient.uploadFile<Homework>('/homework/analyze', file, { subject, grade,  model: localStorage.getItem("model") || "test", mode: localStorage.getItem("mode") || "text" }), 
 
   getHomework: (taskId: string) =>
     apiClient.get<Homework>(`/homework/${taskId}`),
@@ -32,8 +33,16 @@ export const homeworkApi = {
   getResult: (taskId: string) =>
     apiClient.get<GradingResult>(`/homework/${taskId}/result`),
 
-  getList: (userId: number) =>
-    apiClient.get<ApiResponse<Homework[]>>(`/homework/list`, { params: { user_id: userId } }),
+  getList: (page: number = 1, page_size: number = 1000, subject?: string, grade?: string, status?: string) =>
+    apiClient.get<ApiResponse<PaginatedResponse<Homework>>>(`/homework/list`, { 
+      params: { 
+        page,
+        page_size,
+        subject,
+        status,
+        grade,
+      } 
+    }),
 
   delete: (taskId: string) =>
     apiClient.delete<void>(`/homework/${taskId}`),
@@ -46,3 +55,8 @@ export const statisticsApi = {
   getGlobalStatistics: () =>
     apiClient.get<GlobalStatistics>('/statistics/global'),
 };
+
+export const settingsApi = {
+    getModels: async () => await apiClient.get('/models'),
+
+}

@@ -26,7 +26,7 @@ export default function RootLayout({
     >
       <body>
         <AuthProvider>
-        <ThemeProvider> 
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem> 
           <TooltipProvider>
             <Toaster
             position="top-center"

@@ -93,7 +93,8 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import { GripVerticalIcon, CircleCheckIcon, LoaderIcon, EllipsisVerticalIcon, Columns3Icon, ChevronDownIcon, PlusIcon, ChevronsLeftIcon, ChevronLeftIcon, ChevronRightIcon, ChevronsRightIcon, TrendingUpIcon } from "lucide-react"
-
+import data from "@/dashboard/data.json"
+import { homeworkApi  } from "@/lib/endpoints"
 export const schema = z.object({
   id: z.number(),
   header: z.string(),
@@ -298,9 +299,10 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
           <DropdownMenuSeparator />
           <DropdownMenuItem 
           variant="destructive"
-          // onClick={() => {
-          //   setData(data.filter((item) => item.id !== row.original.id))
-          // }}
+            onClick={async () => {
+              toast.success("Deleted")
+              await homeworkApi.getList(row.original.id)
+            }}
           >Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -334,12 +336,10 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
   )
 }
 
-export function DataTable({
-  data: initialData,
-}: {
-  data: z.infer<typeof schema>[]
-}) {
-  const [data, setData] = React.useState(() => initialData)
+export function DataTable() {
+  const [data, setData] = React.useState<z.infer<typeof schema>[]>([])
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
@@ -357,6 +357,77 @@ export function DataTable({
     useSensor(TouchSensor, {}),
     useSensor(KeyboardSensor, {})
   )
+
+  // 数据加载逻辑
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true)
+        const userId = Number(localStorage.getItem('user_id') || '0')
+        // const response = await homeworkApi.getList(userId)
+    
+        // // 字段映射示例
+        // let mappedData = response.data.items.map(item => ({
+        //   id: item.task_id,
+        //   header: item.questions.length > 0 ? item.questions[0] : '无题目',
+        //   subject: item.subject === 'math' ? '数学' : item.subject,
+        //   status: item.status === 'PENDING' ? '待批改' : 
+        //           item.status === 'GRADED' ? '已批改' : item.status,
+        //   score: item.accuracy,
+        //   date: new Date(item.created_at).toLocaleDateString('zh-CN'),
+        //   average: item.question_count,
+        // }))
+        
+        let mockResponse = {
+          "code": 200,
+          "message": "success",
+          "data": {
+            "items": [
+              {
+                "task_id": "task_55d3a8f48a764c16b316c572fa9eefff",
+                "subject": "math",
+                "status": "PENDING",
+                "accuracy": 0,
+                "created_at": "2026-06-03T19:38:14",
+                "questions": [],
+                "question_count": 0
+              },
+              {
+                "task_id": "task_423d4fab600048a2b081c0ced521a336",
+                "subject": "math",
+                "status": "PENDING",
+                "accuracy": 0,
+                "created_at": "2026-06-03T19:37:58",
+                "questions": [],
+                "question_count": 0
+              }
+            ],
+            "total": 2,
+            "page": 1,
+            "page_size": 10
+          }
+        }
+        let mappedData = mockResponse.data.items.map(item => ({
+          id: item.task_id,
+          header: item.questions.length > 0 ? item.questions[0] : '无题目',
+          subject: item.subject === 'math' ? '数学' : item.subject,
+          status: item.status === 'PENDING' ? '待批改' : 
+                  item.status === 'GRADED' ? '已批改' : item.status,
+          score: item.accuracy,
+          date: new Date(item.created_at).toLocaleDateString('zh-CN'),
+          average: item.question_count,
+        }))
+        setData(mappedData)
+        setError(null)
+      } catch (err) {
+        setError('加载数据失败')
+        toast.error('加载数据失败')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
 
   const dataIds = React.useMemo<UniqueIdentifier[]>(
     () => data?.map(({ id }) => id) || [],
@@ -507,25 +578,55 @@ export function DataTable({
                 ))}
               </TableHeader>
               <TableBody className="**:data-[slot=table-cell]:first:w-8">
-                {table.getRowModel().rows?.length ? (
-                  <SortableContext
-                    items={dataIds}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {table.getRowModel().rows.map((row) => (
-                      <DraggableRow key={row.id} row={row} />
-                    ))}
-                  </SortableContext>
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
+                {
+                isLoading ?
+                      (
+                        <TableRow>
+                          <TableCell colSpan={columns.length} className="h-24 text-center">
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                              <p className="text-sm text-muted-foreground">加载中...</p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) 
+                :
+                    error ?
+                          (
+                            <TableRow>
+                              <TableCell colSpan={columns.length} className="h-24 text-center">
+                                <div className="flex flex-col items-center gap-2">
+                                  <p className="text-sm text-red-500">{error}</p>
+                                  <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                                    重试
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                            ) 
+                      : 
+                          table.getRowModel().rows?.length ? (
+                            <SortableContext
+                              items={dataIds}
+                              strategy={verticalListSortingStrategy}
+                            >
+                              {table.getRowModel().rows.map((row) => (
+                                <DraggableRow key={row.id} row={row} />
+                              ))}
+                            </SortableContext>
+                          ) 
+                      : 
+                        (
+                        <TableRow>
+                          <TableCell
+                            colSpan={columns.length}
+                            className="h-24 text-center"
+                          >
+                            暂无数据
+                          </TableCell>
+                        </TableRow>
+                      )
+                }
               </TableBody>
             </Table>
           </DndContext>

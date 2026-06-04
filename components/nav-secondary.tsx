@@ -9,6 +9,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useState } from "react";
+import { SettingsDialog } from "@/components/settings-dialog";
+
 
 export function NavSecondary({
   items,
@@ -20,22 +23,28 @@ export function NavSecondary({
     icon: React.ReactNode
   }[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   return (
+    <>
     <SidebarGroup {...props}>
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
-                <a href={item.url}>
+                <button onClick={() => setSettingsOpen(!settingsOpen)}>
                   {item.icon}
                   <span>{item.title}</span>
-                </a>
+                </button>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
+    <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+
+    </>
   )
 }
