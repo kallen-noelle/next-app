@@ -4,22 +4,12 @@ import { MonitorSmartphone, Moon, Sun, Palette } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useMemo, type ComponentType, type SVGProps } from "react";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
+
 import { cn } from "@/lib/utils";
 
 import { SettingsSection } from "../components/settings-section";
 
-const languageOptions = [
-  { value: "zh-CN", label: "简体中文" },
-  { value: "en-US", label: "English" },
-];
+
 
 type ThemeMode = "system" | "light" | "dark" | "theme-purple" | "theme-blue" | "theme-green";
 
@@ -97,26 +87,6 @@ export function AppearanceSettingsPage() {
             />
           ))}
         </div>
-      </SettingsSection>
-
-      <Separator />
-
-      <SettingsSection
-        title="语言"
-        description="设置应用显示语言"
-      >
-        <Select value="zh-CN">
-          <SelectTrigger className="w-[220px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {languageOptions.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </SettingsSection>
     </div>
   );

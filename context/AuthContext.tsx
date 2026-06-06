@@ -27,15 +27,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await authApi.login({ email, password });
-      setToken(response.access_token);
-      setUser(response.user);
-      localStorage.setItem('token', response.access_token);
-      localStorage.setItem('username', response.user.username);
-      localStorage.setItem('role', response.user.role);
-      localStorage.setItem('user_id', response.user.id);
-      localStorage.setItem('email', response.user.email);
-      localStorage.setItem('created_at', response.user.created_at);
+      // 第一步：发送 POST /api/v1/auth/login 请求获取 token
+      const loginResponse = await authApi.login(email, password);
+      const accessToken = loginResponse.data.access_token;
+      
+      // 保存 token 到状态和 localStorage
+      setToken(accessToken);
+      localStorage.setItem('token', accessToken);
+      
+      // 第二步：发送 GET /api/v1/auth/me 请求获取用户信息
+      // 在 Header 中添加 Authorization: Bearer {access_token}
+      const userResponse = await authApi.getUser();  
+      const userData = userResponse.data;
+      
+      // 保存用户信息到状态和 localStorage
+      setUser(userData);
+      localStorage.setItem('username', userData.username);
+      localStorage.setItem('role', userData.role);
+      localStorage.setItem('user_id', userData.id.toString());
+      localStorage.setItem('email', userData.email);
+      localStorage.setItem('created_at', userData.create_time);
 
       toast.success('登录成功');
     } catch (err) {

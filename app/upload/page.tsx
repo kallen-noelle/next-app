@@ -39,12 +39,17 @@ export function EmptyOutline() {
   const [file, setFile] = useState<File | null>(null);
   const [subject, setSubject] = useState('');
   const [grade, setGrade] = useState('');
-  const [style, setStyle] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const userId = localStorage.getItem('user_id');
+  
+  // 获取用户角色
+  const userRole = localStorage.getItem('role') || 'student';
+  
+  // 根据角色设置默认上传类型
+  const uploadType = userRole === 'teacher' ? 'knowledge' : 'homework';
   
   const subjects = [
     { value: 'math', label: '数学' },
@@ -71,11 +76,6 @@ export function EmptyOutline() {
     { value: 'grade10', label: '十年级' },
     { value: 'grade11', label: '十一年级' },
     { value: 'grade12', label: '十二年级' },
-  ];
-  
-  const styles = [
-    { value: 'homework', label: '作业' },
-    { value: 'knowledge', label: '知识文档' },
   ];
   
   const handleDragOver = (e: React.DragEvent) => {
@@ -131,10 +131,6 @@ export function EmptyOutline() {
       isValid = false;
     }
 
-    if (!style) {
-      isValid = false;
-    }
-
     if (!userId) {
       toast.error('用户未登录');
       isValid = false;
@@ -147,14 +143,14 @@ export function EmptyOutline() {
     setIsUploading(true);
 
     try {
-      if (style === 'homework') {
-        await homeworkApi.upload(file!, subject,grade);
-      }
-      else {
-        await knowledgeApi.upload(file!, subject,grade);
+      if (uploadType === 'homework') {
+        await homeworkApi.upload(file!, subject, grade);
+        toast.success('作业上传成功');
+      } else {
+        await knowledgeApi.upload(file!, subject, grade);
+        toast.success('知识文档上传成功');
       }
 
-      toast.success('文件上传成功');
       // 重置表单
       setFile(null);
       setGrade('');
@@ -222,29 +218,15 @@ export function EmptyOutline() {
                   <p className="text-sm text-red-500 mt-1">请选择科目</p>
                 )}
             </Field>
-            <Field>
-               <FieldLabel htmlFor="form-style">类型</FieldLabel>
-               <Select 
-                 value={style} 
-                 onValueChange={setStyle}
-                 required
-                 
-               >
-                 <SelectTrigger id="form-style">
-                   <SelectValue />
-                 </SelectTrigger>
-                 <SelectContent>
-                   {styles.map((style) => (
-                     <SelectItem key={style.value} value={style.value}>
-                       {style.label}
-                     </SelectItem>
-                   ))}
-                 </SelectContent>
-               </Select>
-               {showErrors && !style && (
-                  <p className="text-sm text-red-500 mt-1">请选择类型</p>
-                )}
-            </Field>
+            {/* 显示当前上传类型（根据角色自动决定） */}
+            <div className="flex items-end">
+              <div className="bg-muted rounded-lg px-3 py-2">
+                <span className="text-sm text-muted-foreground">上传类型:</span>
+                <span className="ml-2 font-medium">
+                  {uploadType === 'homework' ? '作业' : '知识文档'}
+                </span>
+              </div>
+            </div>
          </div>
 
           <div className="bg-muted rounded-xl shadow-sm p-6 border border-gray-100">
@@ -312,7 +294,7 @@ export function EmptyOutline() {
             text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:ring-4 focus:ring-blue-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isUploading && <Loader2 className="w-5 h-5 animate-spin" />}
-            {isUploading ? '上传中...' : '提交作业'}
+            {isUploading ? '上传中...' : (uploadType === 'homework' ? '提交作业' : '上传知识文档')}
           </button>
         </form>
       </div>

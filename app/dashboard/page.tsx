@@ -5,18 +5,12 @@ import { DataTable } from "@/components/data-table"
 import { SectionCards } from "@/components/section-cards"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { ChartBarMultiple } from "@/components/chart"
+import { useHomeworkData } from "@/hooks/useHomeworkData"
 
-import { Homework } from "@/types"
-import { toast } from "sonner"
-import { useEffect, useState } from "react"
-
-import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/ui/spinner"
 
 export default function Page() {
-  const [homework, setHomework] = useState<Homework[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { tableData, chartData, loading, error } = useHomeworkData()
 
   return (
     <SidebarProvider
@@ -35,10 +29,10 @@ export default function Page() {
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <SectionCards />
               <div className="px-4 lg:px-6">
-                <ChartAreaInteractive />
+                <ChartBarMultiple chartData={chartData} loading={loading} />
               </div>
      
-                <DataTable />
+                <DataTable initialData={tableData} loading={loading} error={error} />
             </div>
           </div>
         </div>

@@ -13,10 +13,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 import { AboutSettingsPage } from "../settings/about-settings-page";
+import { OptionsSettingsPage } from "../settings/options-settings-page";
 import { AppearanceSettingsPage } from "../settings/appearance-settings-page";
 
 type SettingsSection =
   | "appearance"
+  |  "options"
   | "about";
 
 type SettingsDialogProps = React.ComponentProps<typeof Dialog> & {
@@ -27,12 +29,14 @@ export function SettingsDialog(props: SettingsDialogProps) {
   const { defaultSection = "appearance", ...dialogProps } = props;
   const [activeSection, setActiveSection] =useState<SettingsSection>(defaultSection);
 
+
   useEffect(() => {if (dialogProps.open) {  setActiveSection(defaultSection);}
 }, [defaultSection, dialogProps.open]);
 
   const sections = useMemo(
     () => [
       { id: "appearance",label: "外观",icon: Palette,},
+      { id: "options",label: "选项",icon: Wrench,},
       { id: "about", label: "关于", icon: Info },
     ],
     []
@@ -81,6 +85,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
           <ScrollArea className="h-full min-h-0 rounded-lg">
             <div className="space-y-8 p-6">
               {activeSection === "appearance" && <AppearanceSettingsPage />}
+              {activeSection === "options" && <OptionsSettingsPage />}
               {activeSection === "about" && <AboutSettingsPage />}
             </div>
           </ScrollArea>

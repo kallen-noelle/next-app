@@ -92,17 +92,24 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import { GripVerticalIcon, CircleCheckIcon, LoaderIcon, EllipsisVerticalIcon, Columns3Icon, ChevronDownIcon, PlusIcon, ChevronsLeftIcon, ChevronLeftIcon, ChevronRightIcon, ChevronsRightIcon, TrendingUpIcon } from "lucide-react"
-import data from "@/dashboard/data.json"
-import { homeworkApi  } from "@/lib/endpoints"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { GripVerticalIcon, CircleCheckIcon, LoaderIcon, EllipsisVerticalIcon, Columns3Icon, ChevronDownIcon, PlusIcon, ChevronsLeftIcon, ChevronLeftIcon, ChevronRightIcon, ChevronsRightIcon, TrendingUpIcon, ClockIcon, Loader2Icon, XIcon, CircleHelpIcon, FileTextIcon } from "lucide-react"
+import { homeworkApi } from "@/lib/endpoints"
 export const schema = z.object({
   id: z.number(),
-  header: z.string(),
+  taskId: z.string(),
   subject: z.string(),
   status: z.string(),
-  score: z.string(),
-  date: z.string(),
-  average: z.string(),
+  questionCount: z.number(),
+  averageScore: z.number(),
+  createTime: z.string(),
 })
 
 // Create a separate component for the drag handle
@@ -127,187 +134,96 @@ function DragHandle({ id }: { id: number }) {
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
   {
-    id: "drag",
-    header: () => null,
-    cell: ({ row }) => <DragHandle id={row.original.id} />,
-  },
-  {
-    id: "select",
-    header: ({ table }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "header",
-    header: "全选",
+    accessorKey: "taskId",
+    header: "任务ID",
     cell: ({ row }) => {
-      return <TableCellViewer item={row.original} />
+      return <span className="font-mono text-sm">{row.original.taskId.slice(0, 5)}</span>
     },
-    enableHiding: false,
   },
   {
     accessorKey: "subject",
     header: "科目",
     cell: ({ row }) => (
-      <div className="w-32">
-        <Badge variant="outline" className="px-1.5 text-muted-foreground">
-          {row.original.subject}
-        </Badge>
-      </div>
+      <Badge variant="outline" className="px-2">
+        {row.original.subject}
+      </Badge>
     ),
   },
   {
     accessorKey: "status",
     header: "状态",
-    cell: ({ row }) => (
-      <Badge variant="outline" className="px-1.5 text-muted-foreground">
-        {row.original.status === "Done" ? (
-          <CircleCheckIcon className="fill-green-500 dark:fill-green-400" />
-        ) : (
-          <LoaderIcon
-          />
-        )}
-        {row.original.status}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "score",
-    header: () => <div className="w-full text-right">得分</div>,
-    cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
-            error: "Error",
-          })
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-target`} className="sr-only">
-          Target
-        </Label>
-        <Input
-          className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background dark:bg-transparent dark:hover:bg-input/30 dark:focus-visible:bg-input/30"
-          defaultValue={row.original.score}
-          id={`${row.original.id}-score`}
-        />
-      </form>
-    ),
-  },
-  {
-    accessorKey: "average",
-    header: () => <div className="w-full text-right">平均分</div>,
-    cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
-            error: "Error",
-          })
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-limit`} className="sr-only">
-          Limit
-        </Label>
-        <Input
-          className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background dark:bg-transparent dark:hover:bg-input/30 dark:focus-visible:bg-input/30"
-          defaultValue={row.original.average}
-          id={`${row.original.id}-average`}
-        />
-      </form>
-    ),
-  },
-  {
-    accessorKey: "date",
-    header: "时间",
     cell: ({ row }) => {
-      const isAssigned = row.original.date !== "Assign reviewer"
+      const status = row.original.status;
+      let statusText = status;
+      let icon = null;
+      let className = "px-2";
 
-      if (isAssigned) {
-        return row.original.date
+      switch (status.toLowerCase()) {
+        case "pending":
+        case "待批改":
+          statusText = "待处理";
+          icon = <ClockIcon className="size-3" />;
+          className += " text-muted-foreground";
+          break;
+        case "processing":
+        case "in process":
+        case "in_progress":
+          statusText = "处理中";
+          icon = <Loader2Icon className="size-3 animate-spin" />;
+          className += " text-blue-500 dark:text-blue-400";
+          break;
+        case "completed":
+        case "done":
+          statusText = "已完成";
+          icon = <CircleCheckIcon className="size-3 fill-green-500 dark:fill-green-400" />;
+          className += " text-green-500 dark:text-green-400";
+          break;
+        case "failed":
+        case "error":
+          statusText = "失败";
+          icon = <XIcon className="size-3 fill-red-500 dark:fill-red-400" />;
+          className += " text-red-500 dark:text-red-400";
+          break;
+        default:
+          statusText = status;
+          icon = <CircleHelpIcon className="size-3" />;
+          className += " text-muted-foreground";
       }
 
       return (
-        <>
-          <Label htmlFor={`${row.original.id}-date`} className="sr-only">
-            Date
-          </Label>
-          <Select>
-            <SelectTrigger
-              className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
-              size="sm"
-              id={`${row.original.id}-date`}
-            >
-              <SelectValue placeholder="Assign date" />
-            </SelectTrigger>
-            <SelectContent align="end">
-              <SelectGroup>
-                <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-                <SelectItem value="Jamik Tashpulatov">
-                  Jamik Tashpulatov
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </>
-      )
+        <Badge variant="outline" className={className}>
+          {icon}
+          {statusText}
+        </Badge>
+      );
     },
   },
   {
-    id: "actions",
-    cell: ({row}) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="flex size-8 text-muted-foreground data-[state=open]:bg-muted"
-            size="icon"
-          >
-            <EllipsisVerticalIcon
-            />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem 
-          variant="destructive"
-            onClick={async () => {
-              toast.success("Deleted")
-              await homeworkApi.getList(row.original.id)
-            }}
-          >Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    accessorKey: "questionCount",
+    header: "题目数",
+    cell: ({ row }) => (
+      <div className="text-center">{row.original.questionCount}</div>
     ),
+  },
+  {
+    accessorKey: "averageScore",
+    header: "平均分",
+    cell: ({ row }) => (
+      <div className="text-center">{row.original.averageScore.toFixed(1)}</div>
+    ),
+  },
+  {
+    accessorKey: "createTime",
+    header: "创建时间",
+    cell: ({ row }) => {
+      const date = new Date(row.original.createTime);
+      return date.toLocaleDateString('zh-CN', { 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    },
   },
 ]
 
@@ -336,10 +252,17 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
   )
 }
 
-export function DataTable() {
-  const [data, setData] = React.useState<z.infer<typeof schema>[]>([])
-  const [isLoading, setIsLoading] = React.useState(true)
-  const [error, setError] = React.useState<string | null>(null)
+// Props 接口
+interface DataTableProps {
+  initialData?: z.infer<typeof schema>[]
+  loading?: boolean
+  error?: string | null
+}
+
+export function DataTable({ initialData = [], loading = false, error = null }: DataTableProps) {
+  const [data, setData] = React.useState<z.infer<typeof schema>[]>(initialData)
+  const [isLoading, setIsLoading] = React.useState(loading)
+  const [tableError, setTableError] = React.useState(error)
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
@@ -351,83 +274,244 @@ export function DataTable() {
     pageIndex: 0,
     pageSize: 10,
   })
+  
+  // 查看作业 Dialog 状态
+  const [viewDialogOpen, setViewDialogOpen] = React.useState(false)
+  const [viewingResult, setViewingResult] = React.useState<any>(null)
+  const [viewLoading, setViewLoading] = React.useState(false)
+  const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 })
+  const [hoveredQuestion, setHoveredQuestion] = React.useState<any>(null)
+  const [imageDimensions, setImageDimensions] = React.useState<{ width: number; height: number } | null>(null)
   const sortableId = React.useId()
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
     useSensor(KeyboardSensor, {})
   )
-
-  // 数据加载逻辑
-  React.useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true)
-        const userId = Number(localStorage.getItem('user_id') || '0')
-        // const response = await homeworkApi.getList(userId)
+  
+  // 处理查看作业
+  const handleView = React.useCallback(async (taskId: string) => {
+    setViewLoading(true)
+    try {
+      const result = await homeworkApi.getResult(taskId)
+      if (result.code === 0) {
+        setViewingResult(result.data)
+        setViewDialogOpen(true)
+      } else {
+        toast.error(result.message || '获取作业详情失败')
+      }
+    } catch (error) {
+      console.error('获取作业详情失败:', error)
+      toast.error('获取作业详情失败，请稍后重试')
+    } finally {
+      setViewLoading(false)
+    }
+  }, [])
+  
+  // 处理删除作业
+  const handleDelete = React.useCallback(async (taskId: string) => {
+    try {
+      const result = await homeworkApi.delete(taskId)
+      if (result.code === 0) {
+        toast.success('删除成功')
+        // 从数据中移除
+        setData(prev => prev.filter(item => item.taskId !== taskId))
+      } else {
+        toast.error(result.message || '删除失败')
+      }
+    } catch (error) {
+      console.error('删除作业失败:', error)
+      toast.error('删除失败，请稍后重试')
+    }
+  }, [])
+  
+  // 处理鼠标移动
+  const handleMouseMove = React.useCallback((
+    e: React.MouseEvent<HTMLDivElement>,
+    imgIndex: number
+  ) => {
+    if (!viewingResult || !imageDimensions) return
     
-        // // 字段映射示例
-        // let mappedData = response.data.items.map(item => ({
-        //   id: item.task_id,
-        //   header: item.questions.length > 0 ? item.questions[0] : '无题目',
-        //   subject: item.subject === 'math' ? '数学' : item.subject,
-        //   status: item.status === 'PENDING' ? '待批改' : 
-        //           item.status === 'GRADED' ? '已批改' : item.status,
-        //   score: item.accuracy,
-        //   date: new Date(item.created_at).toLocaleDateString('zh-CN'),
-        //   average: item.question_count,
-        // }))
-        
-        let mockResponse = {
-          "code": 200,
-          "message": "success",
-          "data": {
-            "items": [
-              {
-                "task_id": "task_55d3a8f48a764c16b316c572fa9eefff",
-                "subject": "math",
-                "status": "PENDING",
-                "accuracy": 0,
-                "created_at": "2026-06-03T19:38:14",
-                "questions": [],
-                "question_count": 0
-              },
-              {
-                "task_id": "task_423d4fab600048a2b081c0ced521a336",
-                "subject": "math",
-                "status": "PENDING",
-                "accuracy": 0,
-                "created_at": "2026-06-03T19:37:58",
-                "questions": [],
-                "question_count": 0
-              }
-            ],
-            "total": 2,
-            "page": 1,
-            "page_size": 10
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    
+    // 转换为百分比
+    const xPercent = x / rect.width
+    const yPercent = y / rect.height
+    
+    setMousePosition({ x: e.clientX, y: e.clientY })
+    
+    // 检查鼠标是否在任何 block 区域内
+    const questions = viewingResult.questions || []
+    for (const q of questions) {
+      const blocks = q.blocks || []
+      for (const block of blocks) {
+        if (block.url.includes(imgIndex.toString()) || block.url === viewingResult.images[imgIndex]?.url) {
+          if (
+            xPercent >= block.x1 &&
+            xPercent <= block.x2 &&
+            yPercent >= block.y1 &&
+            yPercent <= block.y2
+          ) {
+            setHoveredQuestion(q)
+            return
           }
         }
-        let mappedData = mockResponse.data.items.map(item => ({
-          id: item.task_id,
-          header: item.questions.length > 0 ? item.questions[0] : '无题目',
-          subject: item.subject === 'math' ? '数学' : item.subject,
-          status: item.status === 'PENDING' ? '待批改' : 
-                  item.status === 'GRADED' ? '已批改' : item.status,
-          score: item.accuracy,
-          date: new Date(item.created_at).toLocaleDateString('zh-CN'),
-          average: item.question_count,
-        }))
-        setData(mappedData)
-        setError(null)
-      } catch (err) {
-        setError('加载数据失败')
-        toast.error('加载数据失败')
-      } finally {
-        setIsLoading(false)
       }
     }
-    fetchData()
+    
+    setHoveredQuestion(null)
+  }, [viewingResult, imageDimensions])
+  
+  // 处理鼠标离开
+  const handleMouseLeave = React.useCallback(() => {
+    setHoveredQuestion(null)
+    setImageDimensions(null)
   }, [])
+  
+  // 列定义（移到内部以使用回调）
+  const columns: ColumnDef<z.infer<typeof schema>>[] = [
+    {
+      accessorKey: "taskId",
+      header: "任务ID",
+      cell: ({ row }) => {
+        return <span className="font-mono text-sm">{row.original.taskId.slice(0, 5)}</span>
+      },
+    },
+    {
+      accessorKey: "subject",
+      header: "科目",
+      cell: ({ row }) => (
+        <Badge variant="outline" className="px-2">
+          {row.original.subject}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "状态",
+      cell: ({ row }) => {
+        const status = row.original.status;
+        let statusText = status;
+        let icon = null;
+        let className = "px-2";
+
+        switch (status.toLowerCase()) {
+          case "pending":
+          case "待批改":
+            statusText = "待处理";
+            icon = <ClockIcon className="size-3" />;
+            className += " text-muted-foreground";
+            break;
+          case "processing":
+          case "in process":
+          case "in_progress":
+            statusText = "处理中";
+            icon = <Loader2Icon className="size-3 animate-spin" />;
+            className += " text-blue-500 dark:text-blue-400";
+            break;
+          case "completed":
+          case "done":
+            statusText = "已完成";
+            icon = <CircleCheckIcon className="size-3 fill-green-500 dark:fill-green-400" />;
+            className += " text-green-500 dark:text-green-400";
+            break;
+          case "failed":
+          case "error":
+            statusText = "失败";
+            icon = <XIcon className="size-3 fill-red-500 dark:fill-red-400" />;
+            className += " text-red-500 dark:text-red-400";
+            break;
+          default:
+            statusText = status;
+            icon = <CircleHelpIcon className="size-3" />;
+            className += " text-muted-foreground";
+        }
+
+        return (
+          <Badge variant="outline" className={className}>
+            {icon}
+            {statusText}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "questionCount",
+      header: "题目数",
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.questionCount}</div>
+      ),
+    },
+    {
+      accessorKey: "averageScore",
+      header: "平均分",
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.averageScore.toFixed(1)}</div>
+      ),
+    },
+    {
+      accessorKey: "createTime",
+      header: "创建时间",
+      cell: ({ row }) => {
+        const date = new Date(row.original.createTime);
+        return date.toLocaleDateString('zh-CN', { 
+          month: 'short', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      },
+    },
+    {
+      accessorKey: "actions",
+      header: "操作",
+      cell: ({row}) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+              <Button
+              variant="ghost"
+              className="flex size-8 text-muted-foreground data-[state=open]"
+              size="icon"
+              >
+              <EllipsisVerticalIcon/>
+              <span className="sr-only">Open menu</span>
+              </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuItem onClick={() => handleView(row.original.taskId)}>
+              查看
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => handleDelete(row.original.taskId)}
+            >
+              删除
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ]
+
+  // 当 props 变化时更新数据和状态
+  React.useEffect(() => {
+    if (initialData.length > 0) {
+      setData(initialData)
+      setPagination({ pageIndex: 0, pageSize: 10 })
+    }
+  }, [initialData])
+
+  // 监听 loading 和 error 属性变化
+  React.useEffect(() => {
+    setIsLoading(loading)
+  }, [loading])
+
+  React.useEffect(() => {
+    setTableError(error)
+  }, [error])
 
   const dataIds = React.useMemo<UniqueIdentifier[]>(
     () => data?.map(({ id }) => id) || [],
@@ -605,7 +689,8 @@ export function DataTable() {
                             </TableRow>
                             ) 
                       : 
-                          table.getRowModel().rows?.length ? (
+                          table.getRowModel().rows?.length ?
+                           (
                             <SortableContext
                               items={dataIds}
                               strategy={verticalListSortingStrategy}
@@ -615,17 +700,17 @@ export function DataTable() {
                               ))}
                             </SortableContext>
                           ) 
-                      : 
-                        (
-                        <TableRow>
-                          <TableCell
-                            colSpan={columns.length}
-                            className="h-24 text-center"
-                          >
-                            暂无数据
-                          </TableCell>
-                        </TableRow>
-                      )
+                          : 
+                            (
+                            <TableRow>
+                              <TableCell
+                                colSpan={columns.length}
+                                className="h-24 text-center"
+                              >
+                                暂无数据
+                              </TableCell>
+                            </TableRow>
+                          )
                 }
               </TableBody>
             </Table>
@@ -730,6 +815,148 @@ export function DataTable() {
       >
         <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
       </TabsContent>
+      
+      {/* 查看作业 Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>作业详情</DialogTitle>
+            <DialogDescription>
+              {viewingResult && (
+                <div className="flex items-center gap-4 mt-2">
+                  <Badge variant="outline">{viewingResult.subject}</Badge>
+                  <Badge variant="outline">{viewingResult.grade}</Badge>
+                  <span className="text-sm text-muted-foreground">
+                    创建时间: {new Date(viewingResult.create_time).toLocaleString('zh-CN')}
+                  </span>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {viewLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2Icon className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : viewingResult ? (
+            <div className="space-y-6">
+              {/* 作业图片展示 */}
+              {viewingResult.images && viewingResult.images.length > 0 ? (
+                <div className="relative">
+                  <div className="grid gap-4">
+                    {viewingResult.images.map((img: any, index: number) => (
+                      <div 
+                        key={index} 
+                        className="rounded-lg border overflow-hidden relative"
+                        onMouseMove={(e) => handleMouseMove(e, index)}
+                        onMouseLeave={handleMouseLeave}
+                      >
+                        <img 
+                          ref={(el) => {
+                            if (el && !imageDimensions) {
+                              el.onload = () => {
+                                setImageDimensions({
+                                  width: el.naturalWidth,
+                                  height: el.naturalHeight
+                                })
+                              }
+                            }
+                          }}
+                          src={img.url} 
+                          alt={`作业图片 ${index + 1}`}
+                          className="w-full h-auto object-contain max-h-[500px] cursor-crosshair"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                        <div className="hidden text-center text-muted-foreground py-8">
+                          <FileTextIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                          <p>无法预览此图片</p>
+                          <p className="text-sm mt-1">{img.url}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* 题目详情跟随框 */}
+                  {hoveredQuestion && (
+                    <div 
+                      className="fixed z-50 bg-white dark:bg-gray-900 rounded-lg shadow-xl border p-4 max-w-sm"
+                      style={{
+                        left: `${mousePosition.x + 15}px`,
+                        top: `${mousePosition.y + 15}px`,
+                        pointerEvents: 'none'
+                      }}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <span className="font-semibold text-sm">
+                          第 {hoveredQuestion.no || 1} 题
+                        </span>
+                        {hoveredQuestion.correction && (
+                          <Badge className={hoveredQuestion.correction.result === 'correct' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                            {hoveredQuestion.correction.score} 分
+                          </Badge>
+                        )}
+                      </div>
+                      {hoveredQuestion.question_type && (
+                        <Badge variant="outline" className="mb-2 text-xs">
+                          {hoveredQuestion.question_type}
+                        </Badge>
+                      )}
+                      {hoveredQuestion.question_text && (
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {hoveredQuestion.question_text}
+                        </p>
+                      )}
+                      {hoveredQuestion.student_answer && (
+                        <p className="text-sm mb-2">
+                          <span className="font-medium">学生答案:</span> {hoveredQuestion.student_answer}
+                        </p>
+                      )}
+                      {hoveredQuestion.correction && (
+                        <div className="text-sm space-y-1 border-t pt-2">
+                          <p className="font-medium">批改结果</p>
+                          <p className="text-muted-foreground">
+                            <span className="font-medium">评价:</span> {hoveredQuestion.correction.comment}
+                          </p>
+                          {hoveredQuestion.correction.analysis && (
+                            <p className="text-muted-foreground">
+                              <span className="font-medium">分析:</span> {hoveredQuestion.correction.analysis}
+                            </p>
+                          )}
+                          {hoveredQuestion.knowledge_refs && hoveredQuestion.knowledge_refs.length > 0 && (
+                            <div className="mt-2 pt-2 border-t">
+                              <p className="font-medium text-xs mb-1">相关知识点:</p>
+                              {hoveredQuestion.knowledge_refs.map((ref: any, i: number) => (
+                                <div key={i} className="text-xs text-muted-foreground">
+                                  <p className="font-medium">{ref.title}</p>
+                                  <p>{ref.content}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileTextIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>暂无作业图片</p>
+                </div>
+              )}
+            </div>
+          ) : null}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
+              关闭
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Tabs>
   )
 }
@@ -867,13 +1094,14 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
                 <Label htmlFor="status">Status</Label>
                 <Select defaultValue={item.status}>
                   <SelectTrigger id="status" className="w-full">
-                    <SelectValue placeholder="Select a status" />
+                    <SelectValue placeholder="选择状态" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="Done">Done</SelectItem>
-                      <SelectItem value="In Progress">In Progress</SelectItem>
-                      <SelectItem value="Not Started">Not Started</SelectItem>
+                      <SelectItem value="pending">待处理</SelectItem>
+                      <SelectItem value="processing">处理中</SelectItem>
+                      <SelectItem value="completed">已完成</SelectItem>
+                      <SelectItem value="failed">失败</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>

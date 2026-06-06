@@ -9,6 +9,7 @@ import { NavUser } from "@/components/nav-user"
 import {  Sidebar,  SidebarContent,  SidebarFooter,  SidebarHeader,  SidebarMenu,  SidebarMenuButton,  SidebarMenuItem,} from "@/components/ui/sidebar"
 import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon } from "lucide-react"
 import { useAuth } from '@/context/AuthContext';
+const userRole = localStorage.getItem('role') || 'student';
 
 const data = {
 
@@ -20,7 +21,7 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "/dashboard",
+      url: userRole === 'teacher' ? "/knowledge" : "/dashboard",
       icon: (   <LayoutDashboardIcon   /> ),
     },
     {
@@ -44,14 +45,8 @@ const data = {
         />
       ),
     },
-    {
-      title: "Team",
-      url: "/team",
-      icon: (
-        <UsersIcon
-        />
-      ),
-    },
+    
+   
   ],
   navClouds: [
     {

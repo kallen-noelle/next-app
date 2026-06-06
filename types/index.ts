@@ -1,10 +1,12 @@
 export interface User {
-  id: string;
+  account:string;
+  create_time:string;
   email: string;
-  username: string;
-  created_at: string;
+  id: number;
+  is_active: boolean;
   role: string;
-  has_password:string;
+  update_time:string;
+  username: string;
 }
 
 export interface RegisterRequest {

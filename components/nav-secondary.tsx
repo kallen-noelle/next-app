@@ -44,7 +44,6 @@ export function NavSecondary({
       </SidebarGroupContent>
     </SidebarGroup>
     <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
-
     </>
   )
 }
