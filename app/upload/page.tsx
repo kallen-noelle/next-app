@@ -4,7 +4,8 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { useState, useRef } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { homeworkApi } from '@/lib/endpoints';
+import { homeworkApi, knowledgeApi } from '@/lib/endpoints';
+
 import { toast } from 'sonner';
 import { Upload, File, X, Loader2 } from 'lucide-react';
 import { Field, FieldLabel } from '@/components/ui/field';
@@ -35,10 +36,10 @@ export default function Page() {
 }
 
 export function EmptyOutline() {
-    const [file, setFile] = useState<File | null>(null);
-  const [description, setDescription] = useState('');
+  const [file, setFile] = useState<File | null>(null);
   const [subject, setSubject] = useState('');
   const [grade, setGrade] = useState('');
+  const [style, setStyle] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
@@ -71,7 +72,12 @@ export function EmptyOutline() {
     { value: 'grade11', label: '十一年级' },
     { value: 'grade12', label: '十二年级' },
   ];
-
+  
+  const styles = [
+    { value: 'homework', label: '作业' },
+    { value: 'knowledge', label: '知识文档' },
+  ];
+  
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -125,6 +131,10 @@ export function EmptyOutline() {
       isValid = false;
     }
 
+    if (!style) {
+      isValid = false;
+    }
+
     if (!userId) {
       toast.error('用户未登录');
       isValid = false;
@@ -137,8 +147,14 @@ export function EmptyOutline() {
     setIsUploading(true);
 
     try {
-      await homeworkApi.upload(file!, subject,grade);
-      toast.success('作业上传成功');
+      if (style === 'homework') {
+        await homeworkApi.upload(file!, subject,grade);
+      }
+      else {
+        await knowledgeApi.upload(file!, subject,grade);
+      }
+
+      toast.success('文件上传成功');
       // 重置表单
       setFile(null);
       setGrade('');
@@ -204,6 +220,29 @@ export function EmptyOutline() {
                </Select>
                {showErrors && !subject && (
                   <p className="text-sm text-red-500 mt-1">请选择科目</p>
+                )}
+            </Field>
+            <Field>
+               <FieldLabel htmlFor="form-style">类型</FieldLabel>
+               <Select 
+                 value={style} 
+                 onValueChange={setStyle}
+                 required
+                 
+               >
+                 <SelectTrigger id="form-style">
+                   <SelectValue />
+                 </SelectTrigger>
+                 <SelectContent>
+                   {styles.map((style) => (
+                     <SelectItem key={style.value} value={style.value}>
+                       {style.label}
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+               {showErrors && !style && (
+                  <p className="text-sm text-red-500 mt-1">请选择类型</p>
                 )}
             </Field>
          </div>

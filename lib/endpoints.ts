@@ -25,7 +25,7 @@ export const authApi = {
 
 export const homeworkApi = {
   upload: (file: File, subject: string, grade: string) =>
-    apiClient.uploadFile<Homework>('/homework/analyze', file, { subject, grade,  model: localStorage.getItem("model") || "test", mode: localStorage.getItem("mode") || "text" }), 
+    apiClient.uploadFile<Homework>('/homework/submit', file, { subject, grade}), 
 
   getHomework: (taskId: string) =>
     apiClient.get<Homework>(`/homework/${taskId}`),
@@ -33,7 +33,7 @@ export const homeworkApi = {
   getResult: (taskId: string) =>
     apiClient.get<GradingResult>(`/homework/${taskId}/result`),
 
-  getList: (page: number = 1, page_size: number = 1000, subject?: string, grade?: string, status?: string) =>
+  getList: (page: number = 1, page_size: number = 100, subject?: string, grade?: string, status?: string) =>
     apiClient.get<ApiResponse<PaginatedResponse<Homework>>>(`/homework/list`, { 
       params: { 
         page,
@@ -47,6 +47,15 @@ export const homeworkApi = {
   delete: (taskId: string) =>
     apiClient.delete<void>(`/homework/${taskId}`),
 };
+export const knowledgeApi = {
+  upload: (file: File, subject?: string , grade?: string) =>
+    apiClient.uploadFile('/knowledge/analyze', file, { subject, grade, }), 
+  
+  getList: (page: number = 1, page_size: number = 100) =>
+  apiClient.get<ApiResponse<PaginatedResponse<Homework>>>(`/knowledge/page`, { 
+    params: {  page,  page_size} 
+  }),
+}
 
 export const statisticsApi = {
   getUserStatistics: (userId: number) =>
