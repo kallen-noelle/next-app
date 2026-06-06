@@ -1,65 +1,121 @@
 # Next.js App
 
-一个基于 Next.js 16 构建的现代化 Web 应用。
+A modern web application built with Next.js 16.
 
-## 演示
+## Demo
 
-<br />
+### Main Interface
+![Main Interface](./public/8.png)
 
-## 技术栈
+### Homework Details
+![Homework Details](./public/7.png)
 
-- **框架**: Next.js 16.1.7 (App Router)
-- **语言**: TypeScript
-- **样式**: Tailwind CSS 4
-- **组件库**: shadcn/ui
-- **图标**: Lucide React
-- **状态管理**: React Hooks
-- **表单验证**: Zod
-- **表格**: TanStack React Table
-- **拖拽**: @dnd-kit
-- **图表**: Recharts
-- **通知**: Sonner
-- **HTTP 客户端**: Axios
+### Question Tooltip
+![Question Tooltip](./public/7.png)
 
-## 快速开始
+### Upload Interface
+![Upload Interface](./public/6.png)
 
-### 安装依赖
+### Knowledge Base
+![Knowledge Base](./public/1.png)
+
+### Login Interface
+![Login Interface](./public/4.png)
+### Signup Interface
+![Signup Interface](./public/5.png)
+### Settings Interface
+![Settings Interface](./public/2.png)
+
+## Tech Stack
+
+- **Framework**: Next.js 16.1.7 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4
+- **Component Library**: shadcn/ui
+- **Icons**: Lucide React
+- **State Management**: React Hooks
+- **Form Validation**: Zod
+- **Tables**: TanStack React Table
+- **Drag & Drop**: @dnd-kit
+- **Charts**: Recharts
+- **Notifications**: Sonner
+- **HTTP Client**: Axios
+
+## Quick Start
+
+### Install Dependencies
 
 ```bash
 pnpm install
 ```
 
-### 开发模式
+### Development Mode
 
 ```bash
 pnpm dev
 ```
 
-启动开发服务器，访问 <http://localhost:3000>
+Start the development server and visit <http://localhost:3000>
 
-### 构建生产版本
+### Build Production Version
 
 ```bash
 pnpm build
 ```
 
-### 启动生产服务器
+### Start Production Server
 
 ```bash
 pnpm start
 ```
 
-### 代码质量检查
+### Code Quality Checks
 
 ```bash
-# 代码格式化
+# Code formatting
 pnpm format
 
-# ESLint 检查
+# ESLint check
 pnpm lint
 
-# TypeScript 类型检查
+# TypeScript type checking
 pnpm typecheck
 ```
 
-## 项目结构
+## Project Structure
+
+```
+├── app/                 # App Router pages
+│   ├── dashboard/       # Dashboard page
+│   ├── knowledge/       # Knowledge base page
+│   ├── login/           # Login page
+│   ├── signup/          # Signup page
+│   ├── upload/          # File upload page
+│   ├── globals.css      # Global styles
+│   ├── layout.tsx       # Root layout
+│   └── page.tsx         # Home page
+├── components/          # React components
+│   ├── ui/              # shadcn/ui components
+│   └── ...              # Custom components
+├── context/             # React context providers
+├── hooks/               # Custom React hooks
+├── lib/                 # Utility functions and API clients
+├── settings/            # Settings pages
+├── types/               # TypeScript type definitions
+└── public/              # Static assets
+```
+
+## Features
+
+- 🎨 **Modern UI**: Beautiful and responsive interface built with shadcn/ui and Tailwind CSS
+- 📱 **Mobile Friendly**: Fully responsive design that works on all devices
+- 🔐 **Authentication**: Secure user authentication system
+- 📊 **Dashboard**: Comprehensive dashboard with data visualization
+- 📁 **File Management**: Upload and manage files easily
+- 🎯 **Homework Grading**: Intelligent homework grading system
+- 🔧 **Customizable**: Highly customizable settings and preferences
+- ⚡ **Fast Performance**: Optimized for speed with Next.js and React
+
+## License
+
+MIT
