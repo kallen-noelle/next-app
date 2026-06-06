@@ -242,8 +242,8 @@ export const homeworkApi = {
             "grade": "二年级",
             "images": [
               { "url": "/exported_image.png" },
-              { "url": "/exported_image.png" },
-              { "url": "/exported_image.png" }
+              { "url": "/3.png" },
+              { "url": "/1.png" }
             ],
             "mode": "aliyun",
             "questions": [
@@ -251,10 +251,10 @@ export const homeworkApi = {
                 "blocks": [
                     {
                         "url": "/exported_image.png",
-                        "x1": 0.12,
-                        "x2": 0.65,
-                        "y1": 0.08,
-                        "y2": 0.35
+                        "x1": 0.0,
+                        "x2": 1.0,
+                        "y1": 0.0,
+                        "y2": 0.5,
                     }
                 ],
                 "correction": {
@@ -276,7 +276,98 @@ export const homeworkApi = {
                 "question_text": "小明有12个苹果，吃了3个，又买了5个，现在有多少个苹果？",
                 "question_type": "应用题",
                 "student_answer": "14个"
-            }
+            },  
+             {
+                "blocks": [
+                    {
+                        "url": "/exported_image.png",
+                        "x1": 0.0,
+                        "x2": 1.0,
+                        "y1": 0.5,
+                        "y2": 1.0
+                    }
+                ],
+                "correction": {
+                    "analysis": "1ddsadsadadasd",
+                    "comment": "回答正确，计算过程无误",
+                    "result": "correct",
+                    "score": 5
+                },
+                "create_time": "2026-06-04T10:01:00",
+                "knowledge_refs": [
+                    {
+                        "content": "加减adsadsada加减法，要从左往右按顺序计算。",
+                        "knowledge_id": 1,
+                        "score": 0.95,
+                        "title": "二年级数学知识点汇总.pdf"
+                    }
+                ],
+                "no": "1",
+                "question_text": "小明有12个苹果，吃了3个，又买了5个，现在有多少个苹果？",
+                "question_type": "应用题",
+                "student_answer": "14个"
+            }, 
+                {
+                "blocks": [
+                    {
+                        "url": "/3.png",
+                        "x1": 0.0,
+                        "x2": 1.0,
+                        "y1": 0.0,
+                        "y2": 0.5,
+                    }
+                ],
+                "correction": {
+                    "analysis": "12-3+5=14，先减后加，运算顺序正确",
+                    "comment": "回答正确，计算过程无误",
+                    "result": "correct",
+                    "score": 10
+                },
+                "create_time": "2026-06-04T10:01:00",
+                "knowledge_refs": [
+                    {
+                        "content": "加减混合运算：在没有括号的算式里，只有加减法，要从左往右按顺序计算。",
+                        "knowledge_id": 1,
+                        "score": 0.95,
+                        "title": "二年级数学知识点汇总.pdf"
+                    }
+                ],
+                "no": "1",
+                "question_text": "小明有12个苹果，吃了3个，又买了5个，现在有多少个苹果？",
+                "question_type": "应用题",
+                "student_answer": "14个"
+            },  
+             {
+                "blocks": [
+                    {
+                        "url": "/2.png",
+                        "x1": 0.0,
+                        "x2": 1.0,
+                        "y1": 0.5,
+                        "y2": 1.0
+                    }
+                ],
+                "correction": {
+                    "analysis": "1ddsadsadadasd",
+                    "comment": "回答正确，计算过程无误",
+                    "result": "correct",
+                    "score": 5
+                },
+                "create_time": "2026-06-04T10:01:00",
+                "knowledge_refs": [
+                    {
+                        "content": "加减adsadsada加减法，要从左往右按顺序计算。",
+                        "knowledge_id": 1,
+                        "score": 0.95,
+                        "title": "二年级数学知识点汇总.pdf"
+                    }
+                ],
+                "no": "1",
+                "question_text": "小明有12个苹果，吃了3个，又买了5个，现在有多少个苹果？",
+                "question_type": "应用题",
+                "student_answer": "14个"
+            },
+         
 
             ],
             "status": "completed",

@@ -2,6 +2,10 @@
 
 一个基于 Next.js 16 构建的现代化 Web 应用。
 
+## 演示
+
+<br />
+
 ## 技术栈
 
 - **框架**: Next.js 16.1.7 (App Router)
@@ -31,7 +35,7 @@ pnpm install
 pnpm dev
 ```
 
-启动开发服务器，访问 http://localhost:3000
+启动开发服务器，访问 <http://localhost:3000>
 
 ### 构建生产版本
 
@@ -59,4 +63,3 @@ pnpm typecheck
 ```
 
 ## 项目结构
-

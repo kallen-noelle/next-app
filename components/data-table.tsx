@@ -330,7 +330,7 @@ export function DataTable({ initialData = [], loading = false, error = null }: D
     e: React.MouseEvent<HTMLDivElement>,
     imgIndex: number
   ) => {
-    if (!viewingResult || !imageDimensions) return
+    if (!viewingResult) return
     
     const rect = e.currentTarget.getBoundingClientRect()
     const x = e.clientX - rect.left
@@ -340,10 +340,12 @@ export function DataTable({ initialData = [], loading = false, error = null }: D
     const xPercent = x / rect.width
     const yPercent = y / rect.height
     
+    // 直接使用鼠标在视口中的绝对位置
     setMousePosition({ x: e.clientX, y: e.clientY })
     
     // 检查鼠标是否在任何 block 区域内
     const questions = viewingResult.questions || []
+    let foundQuestion = null
     for (const q of questions) {
       const blocks = q.blocks || []
       for (const block of blocks) {
@@ -354,15 +356,16 @@ export function DataTable({ initialData = [], loading = false, error = null }: D
             yPercent >= block.y1 &&
             yPercent <= block.y2
           ) {
-            setHoveredQuestion(q)
-            return
+            foundQuestion = q
+            break
           }
         }
       }
+      if (foundQuestion) break
     }
     
-    setHoveredQuestion(null)
-  }, [viewingResult, imageDimensions])
+    setHoveredQuestion(foundQuestion)
+  }, [viewingResult])
   
   // 处理鼠标离开
   const handleMouseLeave = React.useCallback(() => {
@@ -864,7 +867,7 @@ export function DataTable({ initialData = [], loading = false, error = null }: D
                           }}
                           src={img.url} 
                           alt={`作业图片 ${index + 1}`}
-                          className="w-full h-auto object-contain max-h-[500px] cursor-crosshair"
+                                           className="w-full h-auto object-cover cursor-crosshair homework-image"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
                             (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
@@ -886,7 +889,8 @@ export function DataTable({ initialData = [], loading = false, error = null }: D
                       style={{
                         left: `${mousePosition.x + 15}px`,
                         top: `${mousePosition.y + 15}px`,
-                        pointerEvents: 'none'
+                        pointerEvents: 'none',
+                        willChange: 'left, top'
                       }}
                     >
                       <div className="flex items-start justify-between mb-2">
